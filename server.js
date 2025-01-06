@@ -24,7 +24,7 @@ app.use(express.json());
 // Set up storage options for multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'D:/GitHub/React Native Expo Final/Final/Face_Recognition_Localhost-main/uploads');
+        cb(null, 'D:/GitHub/React Native Expo Final/Final/FinalPro_Backend/uploads');
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -93,7 +93,7 @@ app.post('/addUserData', upload.single('image'), async (req, res) => {
         const encryptednic = encrypt(nic);
         const encrypteduser = encrypt(username)
         const newUsername = username+encrypteduser.slice(0,4)
-        console.log(newUsername)
+        //console.log(newUsername)
         const filename = req.file.filename;
 
         const setQuery = 'INSERT INTO userdata (NAME, NUMBER, EXPIRE_DATE, CVV, IMAGE, BALANCE, USERNAME, PASSWORD, IDNUM) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
