@@ -253,6 +253,26 @@ app.post('/login', async (req, res) => {
 });
 
 
+app.get('/editUserServerSide', async (req, res) => {
+    const { username, nic } = req.query;
+    const query = 'SELECT NAME IDNUM USER_ID FROM userdata WHERE USERNAME = ? ';
+    connection.query(query, [username], (error, results) => {
+        if (error) {
+            console.error('Error fetching user:', error);
+            return res.status(500).send('Error Retrieving user Data');
+        }
+        if (results.length > 0) {
+            //console.log("User Data Recieved")
+            res.json(results)
+        } else {
+            res.status(404).send('No matching user found');
+            
+        }
+    });
+    //console.log("Hello")-
+})
+
+
 
 
 
