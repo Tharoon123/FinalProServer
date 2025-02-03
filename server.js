@@ -163,29 +163,52 @@ app.post('/addTransaction', async (req, res) => {
         return res.status(400).send('Missing required fields: userId, amount, or status');
     }
 
-    // Insert transaction into the transactions table
-    const insertTransactionQuery = 'INSERT INTO transactions (USER_ID, AMOUNT, STATUS, LOCATION) VALUES (?, ?, ?, ?)';
-    connection.query(insertTransactionQuery, [userId, amount, status, location], (error) => {
+    const searchBalanceQuery = 'SELECT BALANCE FROM userdata WHERE USER_ID ='+userId;
+    connection.query(searchBalanceQuery, (error, results) => {
         if (error) {
-            console.error('Error inserting transaction:', error);
-            return res.status(500).send('Error adding transaction');
+            console.error('Error fetching balance:', error);
+            return res.status(500).send('Error fetching balance');
         }
-
-        // If transaction is successful, update the BALANCE in the userdata table
-        if (status === 1) { // Status 1 indicates success
-            const updateBalanceQuery = 'UPDATE userdata SET BALANCE = BALANCE - ? WHERE USER_ID = ?';
-            connection.query(updateBalanceQuery, [amount, userId], (updateError) => {
-                if (updateError) {
-                    console.error('Error updating balance:', updateError);
-                    return res.status(500).send('Transaction added, but failed to update balance');
-                }
-
-                res.send('Transaction added successfully and balance updated');
-            });
+        if (results.length > 0) {
+            const balance = results[0].BALANCE;
+            if (balance < amount) {
+                console.log("Insufficient Balance")
+                return res.status(400).send('Insufficient balance');
+            }else{
+                console.log("Sufficient Balance")
+                addTransaction();
+            }
         } else {
-            res.send('Transaction added successfully');
+            return res.status(404).send('User not found');
         }
     });
+
+    function addTransaction(){
+        // Insert transaction into the transactions table
+        const insertTransactionQuery = 'INSERT INTO transactions (USER_ID, AMOUNT, STATUS, LOCATION) VALUES (?, ?, ?, ?)';
+        connection.query(insertTransactionQuery, [userId, amount, status, location], (error) => {
+            if (error) {
+                console.error('Error inserting transaction:', error);
+                return res.status(500).send('Error adding transaction');
+            }
+
+            // If transaction is successful, update the BALANCE in the userdata table
+            if (status === 1) { // Status 1 indicates success
+                const updateBalanceQuery = 'UPDATE userdata SET BALANCE = BALANCE - ? WHERE USER_ID = ?';
+                connection.query(updateBalanceQuery, [amount, userId], (updateError) => {
+                    if (updateError) {
+                        console.error('Error updating balance:', updateError);
+                        return res.status(500).send('Transaction added, but failed to update balance');
+                    }
+
+                    res.send('Transaction added successfully and balance updated');
+                });
+            } else {
+                res.send('Transaction added successfully');
+            }
+        });
+    }
+    
 });
 
 // API to get all transactions for a user
