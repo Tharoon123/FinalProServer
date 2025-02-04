@@ -276,26 +276,50 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.get('/editUserServerSide', async (req, res) => {
-    const { username, nic } = req.query;
-    const query = 'SELECT NAME IDNUM USER_ID FROM userdata WHERE USERNAME = ? ';
-    connection.query(query, [username], (error, results) => {
+app.post('/editUserServerSide', async (req, res) => {
+
+    const {name,nic,currPass,newPass,confirmPass} = req.body;
+    var encpass=encrypt(newPass);
+
+    //console.log(name, nic, currPass,newPass,confirmPass);
+    
+    const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
+    connection.query(query, [name], (error, results) => {
         if (error) {
             console.error('Error fetching user:', error);
             return res.status(500).send('Error Retrieving user Data');
         }
         if (results.length > 0) {
             //console.log("User Data Recieved")
-            res.json(results)
+            if(name === results[0].USERNAME && nic === decrypt(results[0].IDNUM) && currPass === decrypt(results[0].PASSWORD)){
+                if(newPass === confirmPass){
+                    editUserData();
+                }
+            }else{
+                res.status(404).send('Invalid credentials');
+            }
+            
         } else {
+            console.log(req.query)
             res.status(404).send('No matching user found');
             
         }
     });
-    //console.log("Hello")-
+
+    function editUserData(){
+        const query = 'UPDATE userdata SET PASSWORD = ? WHERE USERNAME = ?';
+        connection.query(query, [encpass, name], (error, results) => {
+            if (error) {
+                console.error('Error fetching user:', error);
+                return res.status(500).send('Error Updating user Data');
+            }else{
+                res.json(results)
+            }
+            
+        });
+    }
+    //console.log("Hello")
 })
-
-
 
 
 
