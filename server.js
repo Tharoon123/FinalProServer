@@ -24,7 +24,7 @@ app.use(express.json());
 // Set up storage options for multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'D:/GitHub/React Native Expo Final/Final/FinalPro_Backend/uploads');
+        cb(null, 'D:/GitHub/React Native Expo Final/Final/FinalPro_FaceRecognition_Localhost-Main/uploads');
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
