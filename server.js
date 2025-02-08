@@ -281,44 +281,45 @@ app.post('/editUserServerSide', async (req, res) => {
     const {name,nic,currPass,newPass,confirmPass} = req.body;
     var encpass=encrypt(newPass);
 
-    console.log(name, nic, currPass,newPass,confirmPass);
+    const msg = 'Server is Online' + name + '<br>The New User Name is : ' + nic + '</center>';
+    res.send(msg);
     
-    const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
-    connection.query(query, [name], (error, results) => {
-        if (error) {
-            console.error('Error fetching user:', error);
-            return res.status(500).send('Error Retrieving user Data');
-        }
-        if (results.length > 0) {
-            //console.log("User Data Recieved")
-            if(name === results[0].USERNAME && nic === decrypt(results[0].IDNUM) && currPass === decrypt(results[0].PASSWORD)){
-                if(newPass === confirmPass){
-                    editUserData();
-                }
-            }else{
-                res.status(404).send('Invalid credentials');
-            }
+    // const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
+    // connection.query(query, [name], (error, results) => {
+    //     if (error) {
+    //         console.error('Error fetching user:', error);
+    //         return res.status(500).send('Error Retrieving user Data');
+    //     }
+    //     if (results.length > 0) {
+    //         //console.log("User Data Recieved")
+    //         if(name === results[0].USERNAME && nic === decrypt(results[0].IDNUM) && currPass === decrypt(results[0].PASSWORD)){
+    //             if(newPass === confirmPass){
+    //                 editUserData();
+    //             }
+    //         }else{
+    //             res.status(404).send('Invalid credentials');
+    //         }
             
-        } else {
-            console.log(req.query)
-            res.status(404).send('No matching user found');
+    //     } else {
+    //         console.log(req.query)
+    //         res.status(404).send('No matching user found');
             
-        }
-    });
+    //     }
+    // });
 
-    function editUserData(){
-        const query = 'UPDATE userdata SET PASSWORD = ? WHERE USERNAME = ?';
-        connection.query(query, [encpass, name], (error, results) => {
-            if (error) {
-                console.error('Error fetching user:', error);
-                return res.status(500).send('Error Updating user Data');
-            }else{
-                res.json(results)
-            }
+    // function editUserData(){
+    //     const query = 'UPDATE userdata SET PASSWORD = ? WHERE USERNAME = ?';
+    //     connection.query(query, [encpass, name], (error, results) => {
+    //         if (error) {
+    //             console.error('Error fetching user:', error);
+    //             return res.status(500).send('Error Updating user Data');
+    //         }else{
+    //             res.json(results)
+    //         }
             
-        });
-    }
-    //console.log("Hello")
+    //     });
+    // }
+    // //console.log("Hello")
 })
 
 
