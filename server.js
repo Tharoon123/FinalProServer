@@ -281,7 +281,7 @@ app.post('/editUserServerSide', async (req, res) => {
     const {name,nic,currPass,newPass,confirmPass} = req.body;
     var encpass=encrypt(newPass);
 
-    //console.log(name, nic, currPass,newPass,confirmPass);
+    console.log(name, nic, currPass,newPass,confirmPass);
     
     const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
     connection.query(query, [name], (error, results) => {
