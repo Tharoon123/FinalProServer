@@ -277,7 +277,7 @@ app.post('/login', async (req, res) => {
 
 
 app.post('/editUserServerSide', async (req, res) => {
-
+    
     const {username,nic} = req.body;
     //var encpass=encrypt(newPass);
 
