@@ -13,7 +13,7 @@
         </center>
         <h1 class="text-center mb-4">Search User Data and Edit Profile Settings</h1>
         
-        <form id="userDataForm" method="GET" action="http://13.127.178.202:5000/editUserServerSide" enctype="multipart/form-data" class="p-4 border rounded shadow-sm bg-light" onsubmit="handleSubmit(event)">
+        <form id="userDataForm" method="POST" action="http:/localhost:5000/editUserServerSide" class="p-4 border rounded shadow-sm bg-light" onsubmit="handleSubmit(event)">
             <div class="mb-3">
                 <label for="username" class="form-label">User ID</label>
                 <input type="text" class="form-control" id="username" name="username" placeholder="Enter user ID" required>
@@ -84,9 +84,16 @@
 
     function handleSubmit(event) {
         event.preventDefault();
-        var form = document.getElementById('userDataForm');
-        form.submit(); // Now submit the form
-    }
+
+        // Log the form data
+        const formData = new FormData(document.getElementById('userDataForm'));
+        for (var pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        // Submit the form
+        document.getElementById('userDataForm').submit();
+        }
 
     
 </script>

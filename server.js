@@ -278,10 +278,9 @@ app.post('/login', async (req, res) => {
 
 app.post('/editUserServerSide', async (req, res) => {
     
-    const {username,nic} = req.body;
-    //var encpass=encrypt(newPass);
-
-    const msg = 'Server is Online' + username + '<br>The New User Name is : ' + nic + '</center>';
+    const { username, nic } = req.params;
+    console.log(req.body); // This should now show the posted data
+    const msg = 'Server is Online : ' + username + '<br>The New User Name is : ' + nic + '</center>';
     res.send(msg);
     
     // const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
