@@ -95,16 +95,19 @@
                 
             </div>
             <div class="tab-pane fade" id="form2" role="tabpanel" aria-labelledby="form2-tab">
-                <form>
+                <form id="userdelDataForm" method="POST" action="http://localhost:5000/deleteUser"
+                Content-Type="application/json" class="p-4 border rounded shadow-sm bg-light"
+                onsubmit="handleDelete(event)"
+                >
                   <div class="mb-3">
-                    <label for="form2Username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="form2Username" placeholder="Enter your username">
-                  </div>
+                    <label for="form2Username" class="form-label">User Name</label>
+                    <input type="text" class="form-control" id="delUsername" name="delUsername" placeholder="Enter your username">
+                </div>
                   <div class="mb-3">
-                    <label for="form2Password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="form2Password" placeholder="Enter your password">
-                  </div>
-                  <button type="submit" class="btn btn-primary">Submit Form 2</button>
+                    <label for="form2Password" class="form-label">NIC Number</label>
+                    <input type="password" class="form-control" id="delnic" name="delnic" placeholder="Enter your NIC Number">
+                    </div>
+                  <button type="submit" class="btn btn-warning">Delete User</button>
                 </form>
             </div>
         </div>
@@ -135,6 +138,12 @@
             var numberInput = document.getElementById('number');
             numberInput.value = numberInput.value.replace(/\s+/g, ''); // Remove spaces from card number before submission
             form.submit(); // Now submit the form
+        }
+
+        function handleDelete(event) {
+            event.preventDefault();
+            var form2 = document.getElementById('userdelDataForm');
+            form2.submit(); // Now submit the form
         }
     </script>
 </body>

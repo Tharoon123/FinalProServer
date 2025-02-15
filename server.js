@@ -39,7 +39,7 @@ const upload = multer({ storage: storage });
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Root@123',
+    password: 'root',
     database: 'banking'
     
 });
@@ -278,49 +278,100 @@ app.post('/login', async (req, res) => {
 
 app.post('/editUserServerSide', async (req, res) => {
     
-    const { username, nic } = req.params;
+    const { name, nic, currPass, newPass,confirmPass } = req.body;
     console.log(req.body); // This should now show the posted data
-    const msg = 'Server is Online : ' + username + '<br>The New User Name is : ' + nic + '</center>';
-    res.send(msg);
+    // const msg = 'Server is Online : ' + name + '<br>The New User Name is : ' + nic + '</center>';
+    // res.send(msg);
     
-    // const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
-    // connection.query(query, [name], (error, results) => {
-    //     if (error) {
-    //         console.error('Error fetching user:', error);
-    //         return res.status(500).send('Error Retrieving user Data');
-    //     }
-    //     if (results.length > 0) {
-    //         //console.log("User Data Recieved")
-    //         if(name === results[0].USERNAME && nic === decrypt(results[0].IDNUM) && currPass === decrypt(results[0].PASSWORD)){
-    //             if(newPass === confirmPass){
-    //                 editUserData();
-    //             }
-    //         }else{
-    //             res.status(404).send('Invalid credentials');
-    //         }
+    const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
+    connection.query(query, [name], (error, results) => {
+        if (error) {
+            console.error('Error fetching user:', error);
+            return res.status(500).send('Error Retrieving user Data');
+        }
+        if (results.length > 0) {
+            //console.log("User Data Recieved")
+            if(name === results[0].USERNAME && nic === decrypt(results[0].IDNUM) && currPass === decrypt(results[0].PASSWORD)){
+                if(newPass === confirmPass){
+                    editUserData();
+                }
+            }else{
+                res.status(404).send('Invalid credentials');
+            }
             
-    //     } else {
-    //         console.log(req.query)
-    //         res.status(404).send('No matching user found');
+        } else {
+            console.log(req.query)
+            res.status(404).send('No matching user found');
             
-    //     }
-    // });
+        }
+    });
 
-    // function editUserData(){
-    //     const query = 'UPDATE userdata SET PASSWORD = ? WHERE USERNAME = ?';
-    //     connection.query(query, [encpass, name], (error, results) => {
-    //         if (error) {
-    //             console.error('Error fetching user:', error);
-    //             return res.status(500).send('Error Updating user Data');
-    //         }else{
-    //             res.json(results)
-    //         }
+    function editUserData(){
+        const encpass = encrypt(newPass);
+        const query = 'UPDATE userdata SET PASSWORD = ? WHERE USERNAME = ?';
+        connection.query(query, [encpass, name], (error, results) => {
+            if (error) {
+                console.error('Error fetching user:', error);
+                return res.status(500).send('Error Updating user Data');
+            }else{
+                res.json(results)
+            }
             
-    //     });
-    // }
-    // //console.log("Hello")
+        });
+    }
+    //console.log("Hello")
 })
 
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: true })); // Parse form data
+app.use(bodyParser.json()); // Parse JSON bodies
+
+app.post('/deleteUser', async (req, res) => {
+    const {delUsername, delnic} = req.body;
+    if(delUsername && delnic){
+        const query = 'SELECT * FROM userdata WHERE USERNAME = ?';
+        connection.query(query, [delUsername], (error, results) => {
+            if (error) {
+                console.error('Error fetching user:', error);
+                const msg = '<center>Error fetching user</center>';
+                res.send(msg);
+            }
+            if (results.length > 0) {
+                //console.log("User Data Recieved")
+                if(delUsername === results[0].USERNAME && delnic === decrypt(results[0].IDNUM)){
+                    deleteUser();
+                }else{
+                    const msg = '<center>Invalid credentials</center>'; 
+                    res.send(msg);
+
+                    
+                }
+                
+            } else {
+                console.log(req.query)
+                const msg = '<center>No Matching User Found</center>';
+                res.send(msg);
+                
+                
+            }
+        });
+    }
+
+    function deleteUser(){
+        const query = 'DELETE FROM userdata WHERE USERNAME = ?';
+        connection.query(query, [delUsername], (error, results) => {
+            if (error) {
+                console.error('Error fetching user:', error);
+                const msg = '<center>Error Deleting User</center>';
+                res.send(msg);
+            }else{
+                const msg = '<center>User Deleted Successfully</center>';
+                res.send(msg)
+            }
+            
+        });
+    }
+});
 
 
 
