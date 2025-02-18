@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <center>
+        <img src="https://i.pinimg.com/originals/4e/31/05/4e31057d2c2353dbe7da359a3ba149ba.png"
+            style="height: 150px; width: 150px;">
+    </center>
+    <h1 class="text-center mb-4">Bank Mate (Pvt Ltd)</h1>
+    <div class="container mt-5">
+        <ul class="nav nav-tabs" id="formTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="form1-tab" data-bs-toggle="tab" data-bs-target="#form1"
+                    type="button" role="tab" aria-controls="form1" aria-selected="true">
+                    Create User
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="form2-tab" data-bs-toggle="tab" data-bs-target="#form2" type="button"
+                    role="tab" aria-controls="form2" aria-selected="false">
+                    Delete User
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3" id="formTabsContent">
+            <div class="tab-pane fade show active" id="form1" role="tabpanel" aria-labelledby="form1-tab">
+                <form id="userDataForm" class="p-4 border rounded shadow-sm bg-light" onsubmit="handleSubmit(event)">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your Email" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nic" class="form-label">NIC Number</label>
+                        <input type="text" class="form-control" id="nic" name="nic" placeholder="Enter your NIC Number" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name as per the NIC</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="number" class="form-label">Card Number</label>
+                        <input type="text" class="form-control" id="number" name="number" placeholder="0000 0000 0000 0000" maxlength="19" pattern="\d{4} \d{4} \d{4} \d{4}" required oninput="formatCardNumber(this)">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="expire_date" class="form-label">Expiry Date</label>
+                        <input type="text" class="form-control" id="expire_date" name="expire_date" placeholder="MM/YY" maxlength="5" pattern="\d{2}/\d{2}" required oninput="formatExpireDate(this)">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cvv" class="form-label">CVV</label>
+                        <input type="text" class="form-control" id="cvv" name="cvv" placeholder="123" maxlength="3" pattern="\d{3}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="balance" class="form-label">Balance</label>
+                        <input type="text" class="form-control" id="balance" name="balance" placeholder="Enter balance" required oninput="formatBalance(this)">
+                    </div>
+
+                    <div class="mb-3 text-center">
+                        <video id="video" width="300" height="250" autoplay></video>
+                        <button type="button" class="btn btn-secondary mt-2" onclick="capturePhoto()">Capture Photo</button>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                    </div>
+
+                    <input type="hidden" id="imageData" name="imageData">
+                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3 text-center">
+        <video id="video" width="300" height="200" autoplay></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+        <img id="capturedImage" src="" alt="Captured Image" class="mt-2 border rounded" style="width: 300px; display: none;">
+        <input type="hidden" id="imageData" name="imageData">
+        <button type="button" class="btn btn-secondary mt-2" onclick="capturePhoto()">Capture Photo</button>
+    </div>
+    
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const capturedImage = document.getElementById("capturedImage");
+    const imageDataInput = document.getElementById("imageData");
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+            video.srcObject = stream;
+        })
+        .catch((error) => {
+            console.error("Error accessing webcam:", error);
+            alert("Please allow camera access.");
+        });
+
+    // Capture Photo
+    window.capturePhoto = function () {
+        if (!video.srcObject) {
+            alert("Camera not initialized. Please allow camera access.");
+            return;
+        }
+        const context = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageDataURL = canvas.toDataURL("image/png"); // Convert to Base64
+
+        // Display the captured image
+        capturedImage.src = imageDataURL;
+        capturedImage.style.display = "block";
+
+        // Store Base64 image data in hidden input
+        imageDataInput.value = imageDataURL;
+
+        alert("Photo captured successfully!");
+    };
+});
+
+// Handle Form Submission
+function handleSubmit(event) {
+    event.preventDefault();
+
+    if (!document.getElementById("imageData").value) {
+        alert("Please capture a photo before submitting.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("username", document.getElementById("username").value);
+    formData.append("email", document.getElementById("email").value);
+    formData.append("nic", document.getElementById("nic").value);
+    formData.append("name", document.getElementById("name").value);
+    formData.append("number", document.getElementById("number").value.replace(/\s+/g, ""));
+    formData.append("expire_date", document.getElementById("expire_date").value);
+    formData.append("cvv", document.getElementById("cvv").value);
+    formData.append("balance", document.getElementById("balance").value);
+    formData.append("imageData", document.getElementById("imageData").value);
+
+    fetch("http://localhost:5000/addUserData", {
+        method: "POST",
+        body: formData,
+    })
+        .then((response) => response.json())
+        .then((data) => alert("User Created Successfully"))
+        .catch((error) => alert("Error Creating User"));
+}
+
+
+    </script>
+</body>
+</html>

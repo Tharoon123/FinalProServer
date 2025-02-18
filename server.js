@@ -82,28 +82,34 @@ function decrypt(text) {
     return decrypted;
 }
 
+
 app.post('/addUserData', upload.single('image'), async (req, res) => {
     if (req.file) {
-        const { name, number, expire_date, cvv, balance, username, password, nic } = req.body;
+        const { name, number, expire_date, cvv, balance, username, nic, email } = req.body;
 
         // Encrypt sensitive data
         const encryptedNumber = encrypt(number);
         const encryptedCvv = encrypt(cvv);
-        const encryptedPassword = encrypt(password);
         const encryptednic = encrypt(nic);
         const encrypteduser = encrypt(username)
         const newUsername = username+encrypteduser.slice(0,4)
+        const pass=encrypteduser.slice(5,10)
+        const encryptedPassword = encrypt(pass)
+        const getEmail=email
         //console.log(newUsername)
         const filename = req.file.filename;
 
-        const setQuery = 'INSERT INTO userdata (NAME, NUMBER, EXPIRE_DATE, CVV, IMAGE, BALANCE, USERNAME, PASSWORD, IDNUM) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const setQuery = 'INSERT INTO userdata (NAME, NUMBER, EXPIRE_DATE, CVV, IMAGE, BALANCE, USERNAME, PASSWORD, IDNUM, EMAIL) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
-        connection.query(setQuery, [name, encryptedNumber, expire_date, encryptedCvv, filename, balance, newUsername, encryptedPassword, encryptednic], (error, results) => {
+        connection.query(setQuery, [name, encryptedNumber, expire_date, encryptedCvv, filename, balance, newUsername, encryptedPassword, encryptednic, getEmail], (error, results) => {
             if (error) {
                 console.error('Database insertion error:', error);
                 return res.status(500).send('Error saving user data');
             }
-            const msg = '<center>User added successfully with ID:' + results.insertId + '<br>The New User Name is : ' + newUsername + '</center>';
+            
+            const emailBody=`<a class="email" title="Email a friend" href="#" onclick="javascript:window.location='mailto:${getEmail}?subject=User Creation Success&body=Dear Customer ${name} Please Reset Your Password in the First Login User Name : ${newUsername} Password : ${pass}'"> Click Here</a>`
+            //const email=`<a class="email" title="Email a friend" href="#" onclick="javascript:window.location='mailto:${getEmail}?subject=User Creation Success&body=Please Reset Your Password in the First Login User Name : '">Email</a>`
+            const msg = `<center>User added successfully <br>Send the Email to :  ${getEmail}  ${emailBody} </center>`;
             res.send(msg);
         });
     } else {
