@@ -8,11 +8,16 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { count } = require('console');
+const app = express();
+
+
+
+
 
 //hello --- Testing For Pipeline --- Removed
 
 // Setup Express
-const app = express();
+
 const server = http.createServer(app);
 const io = socketIo(server); // Setup socket.io for real-time communication
 
@@ -40,7 +45,7 @@ const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'root',
-    database: 'banking'
+    database: 'bankmate'
     
 });
 
@@ -379,7 +384,144 @@ app.post('/deleteUser', async (req, res) => {
     }
 });
 
+app.post('/createCustomerSupermarket', (req, res) => {
+    const { email, password, isAdmin, fname, lname } = req.body;
+    const query = 'INSERT INTO users (fname, lname, email, password, isAdmin) VALUES (?, ?, ?, ?, ?)';
+    connection.query(query, [fname, lname, email, password, isAdmin ], (error, results) => {
+        if (error) {
+            console.error('Error creating user:', error);
+            return res.status(500).send('Error creating user');
+        }
+        res.send('User created successfully');
+    });
+});
 
+
+const { generateAccessAndRefreshToken, refreshToken } = require('./utils/token'); 
+app.post('/loginCustomerSupermarket', (req, res) => {
+    const { email, password } = req.body;
+    const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
+    connection.query(query, [email, password], (error, results) => {
+        if (error) {
+            console.error('Error fetching user:', error);
+            return res.status(500).send('Error fetching user');
+        }
+        if (results.length > 0) {
+            let userData = {
+                userId: results[0].userId,
+                isAdmin: results[0].isAdmin,
+            }
+            const {token, refreshToken} = generateAccessAndRefreshToken(userData);
+            userData.token = token;
+            // if refresh token gives cros error avoid passing refresh token in cookies & pass as nrml param
+            userData.refreshToken = refreshToken;
+            //res.json(userData);
+            //console.log(userData)
+            //res.cookie('refreshToken', refreshToken, { httpOnly: true });
+            res.json({ 
+                userId: results[0].userId, 
+                isAdmin: results[0].isAdmin, 
+                token, 
+                refreshToken 
+            });
+        } else {
+            res.status(404).send('Invalid credentials');
+        }
+    });
+});
+
+app.post('/createProduct', (req, res) => {
+    const { name, description, price, } = req.body;
+    const query = 'INSERT INTO product (name, description,  price) VALUES (?, ?, ?)';
+    connection.query(query, [name, description, price], (error, results) => {
+        if (error) {
+            console.error('Error creating product:', error);
+            return res.status(500).send('Error creating product');
+        }
+        res.status(201).json({ message: 'Product created successfully' });
+        //res.send('Product created successfully');
+    });
+});
+
+app.get('/getProducts', (req, res) => {
+    const query = 'SELECT * FROM product';
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching product:', error);
+            return res.status(500).send('Error fetching products');
+        }
+        res.json(results);
+    });
+});
+
+app.delete('/deleteProduct', (req, res) => {
+    console.log(req.body)
+    const { productId } = req.body;
+    try{
+        const query = 'DELETE FROM product WHERE productId = ?';
+        connection.query(query, [productId], (error, results) => {
+        if (error) {
+            console.error('Error deleting product:', error);
+            return res.status(500).send('Error deleting product');
+        }
+        res.status(200).json({ message: 'Product deleted successfully' });
+    });
+
+    }catch(err){
+        console.log(err)
+    }
+    
+});
+
+
+//--------------Customer Login----------------
+
+app.get('/getProducts', (req, res) => {
+    const query = 'SELECT * FROM product';
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching product:', error);
+            return res.status(500).send('Error fetching products');
+        }
+        res.json(results);
+    });
+});
+
+// API to get all products in the cart for a user
+app.post("/api/cart/add", (req, res) => {
+    const { customerId, productId, quantity } = req.body;
+
+    connection.query("SELECT * FROM cart WHERE userId = ? AND productId = ?", [customerId, productId], (err, results) => {
+      if (err) {
+        res.status(500).json({ error: "Error retrieving cart" });
+      } else if (results.length > 0) {
+        connection.query("UPDATE cart SET quantity = quantity + ? WHERE userId = ? AND productId = ?", [quantity, customerId, productId], (err) => {
+          if (err) res.status(500).json({ error: "Error updating cart" });
+          else res.status(200).json({ message: "Cart updated" });
+        });
+      } else {
+        connection.query("INSERT INTO cart (userId, productId, quantity) VALUES (?, ?, ?)", [customerId, productId, quantity], (err) => {
+          if (err) res.status(500).json({ error: "Error adding to cart" });
+          else res.status(201).json({ message: "Product added to cart" });
+        });
+      }
+    });
+  });
+
+
+
+app.delete('/deleteProductInCart', (req, res) => {
+    const { productId, customerId } = req.body;
+    const query = 'DELETE FROM shopingcart WHERE productId = ? userId = ?';
+    connection.query(query, [productId, customerId], (error, results) => {
+        if (error) {
+            console.error('Error deleting product in cart:', error);
+            return res.status(500).send('Error deleting product in cart');
+        }
+        res.status(200).json({ message: 'Product deleted from cart successfully' });
+    });
+});
+  
 
 const PORT = 5000;
 server.listen(PORT, () => {
